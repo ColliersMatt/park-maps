@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Les Paul &amp; Hwy 164 Corridor — Listings Map</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --deep:#000759; --dark:#25408F; --text:#353E59; --muted:#7B8BBD; --line:#DBE5FF; --tile:#eef1f8; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; font-family:Arial,Helvetica,sans-serif; color:var(--text); background:#fff; }
+  .app { display:flex; flex-direction:column; height:100%; }
+  header { background:var(--deep); color:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  header .logo { height:44px; width:auto; display:block; flex:none; }
+  header h1 { margin:0; font-size:18px; }
+  header p { margin:3px 0 0; font-size:12px; color:#ACBBE8; }
+  .main { flex:1; display:flex; min-height:0; }
+  aside { width:340px; border-right:1px solid var(--line); overflow-y:auto; display:flex; flex-direction:column; }
+  #map { flex:1; }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; padding:14px 16px 10px; border-bottom:1px solid var(--line); }
+  .chip { border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 11px 6px 8px; font:12px Arial; color:var(--text);
+          cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+  .chip[aria-pressed="false"] { opacity:.45; }
+  .chip i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .list { padding:6px 0; }
+  .item { display:flex; gap:10px; padding:10px 16px; cursor:pointer; border-bottom:1px solid #f1f3fa; }
+  .item:hover, .item.active { background:var(--tile); }
+  .num { flex:none; width:24px; height:24px; border-radius:50%; color:#fff; font-size:12px; font-weight:bold;
+         display:flex; align-items:center; justify-content:center; }
+  .item b { font-size:13px; display:block; }
+  .item span { font-size:12px; color:var(--muted); display:block; margin-top:2px; }
+  .foot { margin-top:auto; padding:12px 16px; font-size:10px; color:var(--muted); border-top:1px solid var(--line); }
+  .foot .disclaimer { margin:6px 0 0; font-style:italic; }
+  .pin { width:28px; height:28px; border-radius:50%; border:3px solid #fff; color:#fff; font:bold 12px Arial;
+         display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,7,89,.35); }
+  .leaflet-popup-content { font-family:Arial,Helvetica,sans-serif; color:var(--text); margin:12px 14px; min-width:190px; }
+  .pop-k { font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:.05em; }
+  .pop-a { font-size:14px; font-weight:bold; margin:3px 0 1px; }
+  .pop-n { font-size:11px; color:var(--muted); }
+  .pop-h { font-size:13px; font-weight:bold; margin-top:8px; }
+  .pop-d { font-size:12px; color:var(--muted); }
+  @media (max-width:720px) {
+    .main { flex-direction:column-reverse; }
+    aside { width:auto; max-height:42%; border-right:0; border-top:1px solid var(--line); }
+  }
+</style></head>
+<body><div class="app">
+<header><div><h1>Les Paul &amp; Hwy 164 Corridor</h1><p>Waukesha, WI &middot; Data as of September 23, 2026</p></div><img class="logo" alt="Colliers" src="data:image/png;base64,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"></header>
+<div class="main">
+  <aside>
+    <div class="filters" id="filters"></div>
+    <div class="list" id="list"></div>
+    <div class="foot">Source: CoStar Group (licensed to Colliers). Listings and sales as shown in the September 23, 2026 update. Grey dots are other buildings in the park.
+      <p class="disclaimer">This information is provided for informational purposes only. It has been obtained from sources believed to be reliable but is not guaranteed and should be independently verified.</p></div>
+  </aside>
+  <div id="map"></div>
+</div></div>
+<script>
+const D = {"pins": [{"n": 1, "kind": "lease", "lat": 42.9765547, "lon": -88.233157, "address": "400 Travis Ln", "name": "", "sf": "19,200 SF", "headline": "4,858 SF available", "detail": "Asking $9.00/SF/yr", "broker": "Colliers"}, {"n": 2, "kind": "lease", "lat": 42.9760768, "lon": -88.2333747, "address": "402 Travis Ln", "name": "", "sf": "25,200 SF", "headline": "5,377 SF available", "detail": "Asking $9.00/SF/yr", "broker": "Colliers"}, {"n": 3, "kind": "sale", "lat": 42.9737064, "lon": -88.228729, "address": "105 Wilmont Dr", "name": "", "sf": "13,680 SF", "headline": "$1,530,000 asking", "detail": "$111.84/SF", "broker": "Coldwell Banker Commercial Realty"}], "context": [{"lat": 42.976206, "lon": -88.232262, "address": "304 Travis Ln", "sf": "9,600 SF", "type": "Light Manufacturing"}, {"lat": 42.975946, "lon": -88.235117, "address": "2111 S West Ave", "sf": "19,352 SF", "type": "Showroom"}, {"lat": 42.9720735, "lon": -88.2466136, "address": "820 Corporate Ct", "sf": "17,500 SF", "type": "Warehouse"}, {"lat": 42.9713408, "lon": -88.2467632, "address": "821 Corporate Ct", "sf": "20,600 SF", "type": "Showroom"}, {"lat": 42.9746281, "lon": -88.2450981, "address": "2124 Corporate Dr", "sf": "15,809 SF", "type": "Manufacturing"}, {"lat": 42.9754484, "lon": -88.2443163, "address": "2201 Corporate Dr", "sf": "17,000 SF", "type": "Manufacturing"}, {"lat": 42.9740893, "lon": -88.2439175, "address": "2215 Corporate Dr", "sf": "14,763 SF", "type": "Distribution"}, {"lat": 42.9736004, "lon": -88.2450466, "address": "2230 Corporate Dr", "sf": "117,000 SF", "type": "Manufacturing"}, {"lat": 42.9704676, "lon": -88.2435668, "address": "2323 Corporate Dr", "sf": "28,087 SF", "type": "Distribution"}, {"lat": 42.976274, "lon": -88.230319, "address": "2103 S Grand Ave", "sf": "9,600 SF", "type": "Light Manufacturing"}, {"lat": 42.9688799, "lon": -88.2313299, "address": "W241S4145 Pine Hollow Ct", "sf": "7,919 SF", "type": "Warehouse"}, {"lat": 42.969592, "lon": -88.228692, "address": "W241S4150 Pine Hollow Ct", "sf": "14,250 SF", "type": "Warehouse"}, {"lat": 42.9690636, "lon": -88.2291504, "address": "W241S4170 Pine Hollow Ct", "sf": "12,000 SF", "type": "Distribution"}, {"lat": 42.972096, "lon": -88.230321, "address": "W241S4021 Rockwood Cir", "sf": "9,000 SF", "type": "Manufacturing"}, {"lat": 42.9724574, "lon": -88.2286433, "address": "W240S3980 Rockwood Ct", "sf": "7,410 SF", "type": "Distribution"}, {"lat": 42.9719379, "lon": -88.2286554, "address": "W240S3990 Rockwood Ct", "sf": "9,690 SF", "type": "Manufacturing"}, {"lat": 42.9727186, "lon": -88.2293611, "address": "W241S3965 Rockwood Ct", "sf": "5,225 SF", "type": "Manufacturing"}, {"lat": 42.9726465, "lon": -88.2287799, "address": "W241S3970 Rockwood Ct", "sf": "12,369 SF", "type": "Distribution"}, {"lat": 42.9725621, "lon": -88.2297861, "address": "W241S3975 Rockwood Ct", "sf": "6,270 SF", "type": "Distribution"}, {"lat": 42.9713133, "lon": -88.2285652, "address": "S40W24020 Rockwood Way", "sf": "11,571 SF", "type": "Service"}, {"lat": 42.971429, "lon": -88.229138, "address": "S40W24080 Rockwood Way", "sf": "7,500 SF", "type": "Distribution"}, {"lat": 42.972195, "lon": -88.230655, "address": "S40W24160 Rockwood Way", "sf": "11,600 SF", "type": "Manufacturing"}, {"lat": 42.9713372, "lon": -88.2312603, "address": "S40W24181 Rockwood Way", "sf": "7,533 SF", "type": "Manufacturing"}, {"lat": 42.9726082, "lon": -88.2318946, "address": "S40W24200 Rockwood Way", "sf": "8,835 SF", "type": "Manufacturing"}, {"lat": 42.9722765, "lon": -88.2320203, "address": "S40W24210 Rockwood Way", "sf": "8,645 SF", "type": "Distribution"}, {"lat": 42.971144, "lon": -88.231542, "address": "S40W24211 Rockwood Way", "sf": "17,240 SF", "type": "Service"}, {"lat": 42.9719636, "lon": -88.2321497, "address": "S40W24220 Rockwood Way", "sf": "5,962 SF", "type": "Distribution"}, {"lat": 42.9751827, "lon": -88.2313565, "address": "301 Travis", "sf": "38,199 SF", "type": "Manufacturing"}, {"lat": 42.9761338, "lon": -88.2282067, "address": "200 Travis Ln", "sf": "14,630 SF", "type": "Manufacturing"}, {"lat": 42.976665, "lon": -88.228868, "address": "202 Travis Ln", "sf": "22,302 SF", "type": "Manufacturing"}, {"lat": 42.975499, "lon": -88.228545, "address": "203 Travis Ln", "sf": "21,208 SF", "type": "Manufacturing"}, {"lat": 42.9766155, "lon": -88.2300578, "address": "206 Travis Ln", "sf": "19,200 SF", "type": "Light Manufacturing"}, {"lat": 42.975368, "lon": -88.229576, "address": "207 Travis Ln", "sf": "15,110 SF", "type": "Manufacturing"}, {"lat": 42.975448, "lon": -88.2300437, "address": "209 Travis Ln", "sf": "10,013 SF", "type": "Manufacturing"}, {"lat": 42.97537, "lon": -88.230675, "address": "211 Travis Ln", "sf": "6,700 SF", "type": "Warehouse"}, {"lat": 42.976583, "lon": -88.232076, "address": "300 Travis Ln", "sf": "19,200 SF", "type": "Light Manufacturing"}, {"lat": 42.975262, "lon": -88.232186, "address": "305 Travis Ln", "sf": "14,820 SF", "type": "Manufacturing"}, {"lat": 42.9751403, "lon": -88.2327146, "address": "309 Travis Ln", "sf": "14,820 SF", "type": "Light Manufacturing"}, {"lat": 42.9749344, "lon": -88.2331988, "address": "313 Travis Ln", "sf": "15,390 SF", "type": "Manufacturing"}, {"lat": 42.9765328, "lon": -88.2342087, "address": "404 Travis Ln", "sf": "19,200 SF", "type": "Light Manufacturing"}, {"lat": 42.9750824, "lon": -88.2340926, "address": "405 Travis Ln", "sf": "10,500 SF", "type": "Manufacturing"}, {"lat": 42.9765313, "lon": -88.2350448, "address": "406 Travis Ln", "sf": "9,600 SF", "type": "Light Manufacturing"}, {"lat": 42.975049, "lon": -88.235079, "address": "411 Travis Ln", "sf": "13,300 SF", "type": "Manufacturing"}, {"lat": 42.9746296, "lon": -88.2423604, "address": "Venture Ct", "sf": "49,935 SF", "type": "Distribution"}, {"lat": 42.974744, "lon": -88.235084, "address": "2121 S West Ave", "sf": "13,100 SF", "type": "Manufacturing"}, {"lat": 42.974852, "lon": -88.236368, "address": "2122 S West Ave", "sf": "8,360 SF", "type": "Warehouse"}, {"lat": 42.974444, "lon": -88.235132, "address": "2125 S West Ave", "sf": "7,500 SF", "type": "Manufacturing"}, {"lat": 42.973448, "lon": -88.235861, "address": "2128 S West Ave", "sf": "6,840 SF", "type": "Distribution"}, {"lat": 42.9744036, "lon": -88.2362406, "address": "2128 S West Ave", "sf": "5,700 SF", "type": "Distribution"}, {"lat": 42.9741413, "lon": -88.2352174, "address": "2129 S West Ave", "sf": "7,125 SF", "type": "Distribution"}, {"lat": 42.9730037, "lon": -88.235296, "address": "2132 S West Ave", "sf": "8,079 SF", "type": "Distribution"}, {"lat": 42.9737922, "lon": -88.2348357, "address": "2133 S West Ave", "sf": "8,977 SF", "type": "Manufacturing"}, {"lat": 42.9727528, "lon": -88.234971, "address": "2200 S West Ave", "sf": "7,350 SF", "type": "Distribution"}, {"lat": 42.972298, "lon": -88.233032, "address": "2207 S West Ave", "sf": "27,464 SF", "type": "Manufacturing"}, {"lat": 42.971389, "lon": -88.233358, "address": "2211 S West Ave", "sf": "19,950 SF", "type": "Manufacturing"}, {"lat": 42.9736921, "lon": -88.2282384, "address": "101 Wilmont Dr", "sf": "9,737 SF", "type": "Distribution"}, {"lat": 42.9744398, "lon": -88.2292436, "address": "108 Wilmont Dr", "sf": "8,000 SF", "type": "Distribution"}, {"lat": 42.9745744, "lon": -88.2299688, "address": "200 Wilmont Dr", "sf": "33,860 SF", "type": "Manufacturing"}, {"lat": 42.974551, "lon": -88.230749, "address": "204 Wilmont Dr", "sf": "17,400 SF", "type": "Manufacturing"}, {"lat": 42.9734521, "lon": -88.2305582, "address": "205 Wilmont Dr", "sf": "6,000 SF", "type": "Warehouse"}, {"lat": 42.9745841, "lon": -88.2319866, "address": "208 Wilmont Dr", "sf": "69,603 SF", "type": "Manufacturing"}, {"lat": 42.973211, "lon": -88.231099, "address": "209 Wilmont Dr", "sf": "17,575 SF", "type": "Manufacturing"}, {"lat": 42.9732199, "lon": -88.2315353, "address": "301 Wilmont Dr", "sf": "16,500 SF", "type": "Manufacturing"}, {"lat": 42.9732488, "lon": -88.2320919, "address": "305 Wilmont Dr", "sf": "12,000 SF", "type": "Distribution"}, {"lat": 42.9742851, "lon": -88.2329384, "address": "308 Wilmont Dr", "sf": "15,000 SF", "type": "Manufacturing"}, {"lat": 42.9731967, "lon": -88.2326297, "address": "309 Wilmont Dr", "sf": "12,000 SF", "type": "Manufacturing"}, {"lat": 42.974259, "lon": -88.233748, "address": "400 Wilmont Dr", "sf": "15,000 SF", "type": "Manufacturing"}, {"lat": 42.973127, "lon": -88.233179, "address": "401 Wilmont Dr", "sf": "12,000 SF", "type": "Warehouse"}, {"lat": 42.974313, "lon": -88.234076, "address": "404 Wilmont Dr", "sf": "18,000 SF", "type": "Manufacturing"}, {"lat": 42.9730612, "lon": -88.2338815, "address": "405 Wilmont Dr", "sf": "13,274 SF", "type": "Warehouse"}, {"lat": 42.973368, "lon": -88.229425, "address": "111 E Wilmont Dr", "sf": "15,150 SF", "type": "Manufacturing"}, {"lat": 42.973707, "lon": -88.229789, "address": "111 E Wilmont Dr", "sf": "15,150 SF", "type": "Manufacturing"}, {"lat": 42.9713524, "lon": -88.2453181, "address": "803 Corporate Ct", "sf": "15,941 SF", "type": "Manufacturing"}], "colors": {"lease": "#2AB6A9", "sale": "#1C54F4", "sold": "#FA6609"}, "labels": {"lease": "For Lease", "sale": "For Sale", "sold": "Recently Sold"}, "contextColor": "#ACBBE8", "tiles": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_3vc4_1_73bc62d0f6a78f6f723671bd", "attribution": "\u00a9 OpenStreetMap contributors \u00a9 CARTO"};
+const map = L.map('map', { zoomControl:true, scrollWheelZoom:true });
+L.tileLayer(D.tiles, { attribution:D.attribution, subdomains:'abcd', maxZoom:20 }).addTo(map);
+const esc = s => (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const ctx = L.layerGroup().addTo(map);
+D.context.forEach(c => L.circleMarker([c.lat,c.lon], { radius:5, color:'#fff', weight:1.5, fillColor:D.contextColor, fillOpacity:1 })
+  .bindPopup(`<div class="pop-a">${esc(c.address)}</div><div class="pop-n">${esc([c.sf,c.type].filter(Boolean).join(' · '))}</div>`)
+  .addTo(ctx));
+
+const on = { lease:true, sale:true, sold:true };
+const markers = {};
+D.pins.forEach(p => {
+  const icon = L.divIcon({ className:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12],
+    html:`<div class="pin" style="background:${D.colors[p.kind]}">${p.n}</div>` });
+  const html = `<div class="pop-k" style="color:${D.colors[p.kind]}">${D.labels[p.kind]}</div>
+    <div class="pop-a">${esc(p.address)}</div>
+    <div class="pop-n">${esc([p.name, p.sf].filter(Boolean).join(' · '))}</div>
+    <div class="pop-h">${esc(p.headline)}</div>
+    <div class="pop-d">${esc(p.detail)}</div>
+    ${p.broker ? `<div class="pop-d">${esc(p.broker)}</div>` : ''}`;
+  markers[p.n] = L.marker([p.lat,p.lon], { icon, zIndexOffset:1000 }).bindPopup(html).addTo(map);
+});
+
+const all = D.pins.concat(D.context).map(p => [p.lat,p.lon]);
+if (all.length) map.fitBounds(all, { padding:[30,30] });
+
+function render() {
+  const f = document.getElementById('filters');
+  f.innerHTML = ['lease','sale','sold'].map(k => {
+    const n = D.pins.filter(p => p.kind===k).length;
+    return `<button class="chip" data-k="${k}" aria-pressed="${on[k]}"><i style="background:${D.colors[k]}"></i>${D.labels[k]} (${n})</button>`;
+  }).join('');
+  f.querySelectorAll('.chip').forEach(b => b.onclick = () => { on[b.dataset.k] = !on[b.dataset.k]; update(); });
+  const l = document.getElementById('list');
+  const vis = D.pins.filter(p => on[p.kind]);
+  l.innerHTML = vis.length ? vis.map(p => `<div class="item" data-n="${p.n}">
+      <div class="num" style="background:${D.colors[p.kind]}">${p.n}</div>
+      <div><b>${esc(p.address)}</b><span>${esc(p.headline)}${p.detail ? ' · '+esc(p.detail) : ''}</span></div></div>`).join('')
+    : '<div class="item"><span>No listings match these filters.</span></div>';
+  l.querySelectorAll('.item[data-n]').forEach(el => el.onclick = () => {
+    const m = markers[el.dataset.n]; map.setView(m.getLatLng(), Math.max(map.getZoom(), 16)); m.openPopup();
+  });
+}
+function update() {
+  D.pins.forEach(p => on[p.kind] ? markers[p.n].addTo(map) : markers[p.n].remove());
+  render();
+}
+render();
+</script></body></html>
