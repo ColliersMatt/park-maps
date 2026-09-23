@@ -30,6 +30,7 @@
   .item b { font-size:13px; display:block; }
   .item span { font-size:12px; color:var(--muted); display:block; margin-top:2px; }
   .foot { margin-top:auto; padding:12px 16px; font-size:10px; color:var(--muted); border-top:1px solid var(--line); }
+  .foot .disclaimer { margin:6px 0 0; font-style:italic; }
   .pin { width:28px; height:28px; border-radius:50%; border:3px solid #fff; color:#fff; font:bold 12px Arial;
          display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,7,89,.35); }
   .leaflet-popup-content { font-family:Arial,Helvetica,sans-serif; color:var(--text); margin:12px 14px; min-width:190px; }
@@ -49,7 +50,8 @@
   <aside>
     <div class="filters" id="filters"></div>
     <div class="list" id="list"></div>
-    <div class="foot">Source: CoStar Group (licensed to Colliers). Listings and sales as shown in the September 23, 2026 update. Grey dots are other buildings in the park.</div>
+    <div class="foot">Source: CoStar Group (licensed to Colliers). Listings and sales as shown in the September 23, 2026 update. Grey dots are other buildings in the park.
+      <p class="disclaimer">This information is provided for informational purposes only. It has been obtained from sources believed to be reliable but is not guaranteed and should be independently verified.</p></div>
   </aside>
   <div id="map"></div>
 </div></div>
