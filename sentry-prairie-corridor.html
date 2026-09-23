@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sentry-Prairie Corridor — Listings Map</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --deep:#000759; --dark:#25408F; --text:#353E59; --muted:#7B8BBD; --line:#DBE5FF; --tile:#eef1f8; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; font-family:Arial,Helvetica,sans-serif; color:var(--text); background:#fff; }
+  .app { display:flex; flex-direction:column; height:100%; }
+  header { background:var(--deep); color:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  header .logo { height:44px; width:auto; display:block; flex:none; }
+  header h1 { margin:0; font-size:18px; }
+  header p { margin:3px 0 0; font-size:12px; color:#ACBBE8; }
+  .main { flex:1; display:flex; min-height:0; }
+  aside { width:340px; border-right:1px solid var(--line); overflow-y:auto; display:flex; flex-direction:column; }
+  #map { flex:1; }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; padding:14px 16px 10px; border-bottom:1px solid var(--line); }
+  .chip { border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 11px 6px 8px; font:12px Arial; color:var(--text);
+          cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+  .chip[aria-pressed="false"] { opacity:.45; }
+  .chip i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .list { padding:6px 0; }
+  .item { display:flex; gap:10px; padding:10px 16px; cursor:pointer; border-bottom:1px solid #f1f3fa; }
+  .item:hover, .item.active { background:var(--tile); }
+  .num { flex:none; width:24px; height:24px; border-radius:50%; color:#fff; font-size:12px; font-weight:bold;
+         display:flex; align-items:center; justify-content:center; }
+  .item b { font-size:13px; display:block; }
+  .item span { font-size:12px; color:var(--muted); display:block; margin-top:2px; }
+  .foot { margin-top:auto; padding:12px 16px; font-size:10px; color:var(--muted); border-top:1px solid var(--line); }
+  .foot .disclaimer { margin:6px 0 0; font-style:italic; }
+  .pin { width:28px; height:28px; border-radius:50%; border:3px solid #fff; color:#fff; font:bold 12px Arial;
+         display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,7,89,.35); }
+  .leaflet-popup-content { font-family:Arial,Helvetica,sans-serif; color:var(--text); margin:12px 14px; min-width:190px; }
+  .pop-k { font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:.05em; }
+  .pop-a { font-size:14px; font-weight:bold; margin:3px 0 1px; }
+  .pop-n { font-size:11px; color:var(--muted); }
+  .pop-h { font-size:13px; font-weight:bold; margin-top:8px; }
+  .pop-d { font-size:12px; color:var(--muted); }
+  @media (max-width:720px) {
+    .main { flex-direction:column-reverse; }
+    aside { width:auto; max-height:42%; border-right:0; border-top:1px solid var(--line); }
+  }
+</style></head>
+<body><div class="app">
+<header><div><h1>Sentry-Prairie Corridor</h1><p>Waukesha, WI &middot; Data as of September 23, 2026</p></div><img class="logo" alt="Colliers" src="data:image/png;base64,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"></header>
+<div class="main">
+  <aside>
+    <div class="filters" id="filters"></div>
+    <div class="list" id="list"></div>
+    <div class="foot">Source: CoStar Group (licensed to Colliers). Listings and sales as shown in the September 23, 2026 update. Grey dots are other buildings in the park.
+      <p class="disclaimer">This information is provided for informational purposes only. It has been obtained from sources believed to be reliable but is not guaranteed and should be independently verified.</p></div>
+  </aside>
+  <div id="map"></div>
+</div></div>
+<script>
+const D = {"pins": [{"n": 1, "kind": "lease", "lat": 42.9914443, "lon": -88.2375101, "address": "1230 S West Ave", "name": "", "sf": "11,210 SF", "headline": "4,000 SF available", "detail": "Asking $10.50/SF/yr", "broker": ""}], "context": [{"lat": 43.0023991, "lon": -88.2470971, "address": "829 W Collage Ave", "sf": "7,125 SF", "type": "Manufacturing"}, {"lat": 43.0023549, "lon": -88.244149, "address": "803 W College Ave", "sf": "10,400 SF", "type": "Warehouse"}, {"lat": 43.002495, "lon": -88.244869, "address": "807 W College Ave", "sf": "3,040 SF", "type": "Manufacturing"}, {"lat": 43.002459, "lon": -88.245141, "address": "811 W College Ave", "sf": "5,000 SF", "type": "Manufacturing"}, {"lat": 43.002437, "lon": -88.245623, "address": "815 W College Ave", "sf": "4,200 SF", "type": "Distribution"}, {"lat": 43.002435, "lon": -88.245879, "address": "819 W College Ave", "sf": "4,400 SF", "type": "Warehouse"}, {"lat": 43.002387, "lon": -88.246277, "address": "821 W College Ave", "sf": "6,650 SF", "type": "Distribution"}, {"lat": 43.0023549, "lon": -88.2466979, "address": "825 W College Ave", "sf": "6,175 SF", "type": "Manufacturing"}, {"lat": 43.002393, "lon": -88.247684, "address": "833 W College Ave", "sf": "13,433 SF", "type": "Manufacturing"}, {"lat": 43.002031, "lon": -88.248257, "address": "843 W College Ave", "sf": "10,516 SF", "type": "Manufacturing"}, {"lat": 43.001804, "lon": -88.248358, "address": "845 W College Ave", "sf": "7,315 SF", "type": "Manufacturing"}, {"lat": 42.9888509, "lon": -88.2375878, "address": "1322 S East Ave", "sf": "9,995 SF", "type": "Distribution"}, {"lat": 42.9991965, "lon": -88.2381563, "address": "531 W Newhall Ave", "sf": "18,900 SF", "type": "Warehouse"}, {"lat": 43.000813, "lon": -88.2452032, "address": "809 Philip Dr", "sf": "74,600 SF", "type": "Manufacturing"}, {"lat": 43.0018296, "lon": -88.2466381, "address": "824 Philip Dr", "sf": "6,095 SF", "type": "Manufacturing"}, {"lat": 43.0018335, "lon": -88.2475604, "address": "832 Philip Dr", "sf": "5,840 SF", "type": "Warehouse"}, {"lat": 43.001969, "lon": -88.245119, "address": "810 Phillip Dr", "sf": "8,075 SF", "type": "Manufacturing"}, {"lat": 43.0019127, "lon": -88.2455814, "address": "816 Phillip Dr", "sf": "9,718 SF", "type": "Manufacturing"}, {"lat": 43.001818, "lon": -88.246172, "address": "820 Phillip Dr", "sf": "6,175 SF", "type": "Manufacturing"}, {"lat": 43.001865, "lon": -88.246994, "address": "828 Phillip Dr", "sf": "6,175 SF", "type": "Manufacturing"}, {"lat": 43.0011852, "lon": -88.2475081, "address": "831 Phillip Dr", "sf": "7,172 SF", "type": "Manufacturing"}, {"lat": 43.0006393, "lon": -88.2475324, "address": "833 Phillip Dr", "sf": "9,556 SF", "type": "Manufacturing"}, {"lat": 43.001587, "lon": -88.243901, "address": "200 S Prairie Ave", "sf": "8,480 SF", "type": "Warehouse"}, {"lat": 42.99982, "lon": -88.243698, "address": "200 S Prairie Ave", "sf": "12,825 SF", "type": "Food Processing"}, {"lat": 43.0009072, "lon": -88.2437731, "address": "210 S Prairie Ave", "sf": "11,300 SF", "type": "Manufacturing"}, {"lat": 43.0003958, "lon": -88.243816, "address": "220 S Prairie Ave", "sf": "32,416 SF", "type": "Manufacturing"}, {"lat": 42.999827, "lon": -88.2438205, "address": "230 S Prairie Ave", "sf": "16,947 SF", "type": "Warehouse"}, {"lat": 42.99898, "lon": -88.244057, "address": "300 S Prairie Ave", "sf": "40,612 SF", "type": "Manufacturing"}, {"lat": 42.997309, "lon": -88.244402, "address": "400 S Prairie Ave", "sf": "267,900 SF", "type": "Manufacturing"}, {"lat": 42.995125, "lon": -88.244577, "address": "500 S Prairie Ave", "sf": "141,075 SF", "type": "Food Processing"}, {"lat": 42.9935393, "lon": -88.2440698, "address": "920 S Prairie Ave", "sf": "80,260 SF", "type": "Manufacturing"}, {"lat": 42.9921515, "lon": -88.2441401, "address": "1100 S Prairie Ave", "sf": "51,602 SF", "type": "Manufacturing"}, {"lat": 42.9919753, "lon": -88.2424472, "address": "1101 S Prairie Ave", "sf": "61,940 SF", "type": "Manufacturing"}, {"lat": 42.9909805, "lon": -88.2427518, "address": "1201 S Prairie Ave", "sf": "15,000 SF", "type": "Manufacturing"}, {"lat": 42.990318, "lon": -88.244105, "address": "1220 S Prairie Ave", "sf": "26,642 SF", "type": "Manufacturing"}, {"lat": 42.99076, "lon": -88.240494, "address": "525 Progress Ave", "sf": "325,000 SF", "type": "Distribution"}, {"lat": 42.992029, "lon": -88.2404903, "address": "620 Progress Ave", "sf": "78,600 SF", "type": "Manufacturing"}, {"lat": 42.9921643, "lon": -88.2452243, "address": "810 Progress Ave", "sf": "45,540 SF", "type": "Manufacturing"}, {"lat": 42.9921703, "lon": -88.2467074, "address": "818 Progress Ave", "sf": "47,750 SF", "type": "Manufacturing"}, {"lat": 42.990772, "lon": -88.2469376, "address": "826 Progress Ave", "sf": "14,797 SF", "type": "Distribution"}, {"lat": 42.9905986, "lon": -88.247893, "address": "831 Progress Ave", "sf": "72,299 SF", "type": "Manufacturing"}, {"lat": 43.0006779, "lon": -88.2366788, "address": "223 S West Ave ave", "sf": "1,270 SF", "type": ""}, {"lat": 43.000839, "lon": -88.248406, "address": "201 Sentry Dr", "sf": "20,007 SF", "type": "Manufacturing"}, {"lat": 43.0000782, "lon": -88.2479609, "address": "303 Sentry Dr", "sf": "3,050 SF", "type": "Warehouse"}, {"lat": 43.0001014, "lon": -88.2484894, "address": "303 Sentry Dr", "sf": "5,770 SF", "type": "Showroom"}, {"lat": 42.999098, "lon": -88.24822, "address": "309 Sentry Dr", "sf": "31,345 SF", "type": "Manufacturing"}, {"lat": 42.998572, "lon": -88.247078, "address": "401 Sentry Dr", "sf": "10,839 SF", "type": "Manufacturing"}, {"lat": 42.993746, "lon": -88.248953, "address": "901 Sentry Dr", "sf": "17,765 SF", "type": "Distribution"}, {"lat": 42.993066, "lon": -88.24892, "address": "1011 Sentry Dr", "sf": "28,063 SF", "type": "Manufacturing"}, {"lat": 42.9908577, "lon": -88.2490727, "address": "1201 Sentry Dr", "sf": "22,600 SF", "type": "Manufacturing"}, {"lat": 42.9904673, "lon": -88.2488677, "address": "1251 Sentry Dr", "sf": "14,500 SF", "type": "Manufacturing"}, {"lat": 42.9897303, "lon": -88.2491339, "address": "1301 Sentry Dr", "sf": "13,800 SF", "type": "Warehouse"}, {"lat": 42.9895266, "lon": -88.2492436, "address": "1305 Sentry Dr", "sf": "10,545 SF", "type": "Distribution"}, {"lat": 42.988819, "lon": -88.2523685, "address": "1023 Spring City Dr", "sf": "15,000 SF", "type": "Showroom"}, {"lat": 42.9887, "lon": -88.240694, "address": "S30W24670 Sunset Dr", "sf": "11,210 SF", "type": "Light Distribution"}, {"lat": 42.9899477, "lon": -88.2404149, "address": "S30W24682 Sunset Dr", "sf": "7,680 SF", "type": ""}, {"lat": 42.9890844, "lon": -88.2473314, "address": "901 W Sunset Dr", "sf": "11,000 SF", "type": ""}, {"lat": 42.9993061, "lon": -88.2382656, "address": "310 S West Ave", "sf": "19,687 SF", "type": "Service"}, {"lat": 42.997089, "lon": -88.237699, "address": "510 S West Ave", "sf": "71,500 SF", "type": "Manufacturing"}, {"lat": 42.990979, "lon": -88.237443, "address": "1260 S West Ave", "sf": "7,225 SF", "type": "Warehouse"}, {"lat": 42.9903131, "lon": -88.237498, "address": "1304 S West Ave", "sf": "11,894 SF", "type": "Manufacturing"}, {"lat": 42.990766, "lon": -88.237619, "address": "1304 A S West Ave", "sf": "5,320 SF", "type": "Manufacturing"}, {"lat": 42.990528, "lon": -88.237796, "address": "1304 B S West Ave", "sf": "5,700 SF", "type": "Manufacturing"}, {"lat": 42.9896116, "lon": -88.237551, "address": "1314-1318 S West Ave", "sf": "8,400 SF", "type": "Showroom"}, {"lat": 42.9891152, "lon": -88.2377024, "address": "1320-1344 S West Ave", "sf": "11,305 SF", "type": "Showroom"}, {"lat": 42.993002, "lon": -88.2505061, "address": "1012 Sentry Dr", "sf": "9,840 SF", "type": ""}, {"lat": 42.991968, "lon": -88.2484296, "address": "1111 Sentry Dr", "sf": "54,400 SF", "type": "Manufacturing"}], "colors": {"lease": "#2AB6A9", "sale": "#1C54F4", "sold": "#FA6609"}, "labels": {"lease": "For Lease", "sale": "For Sale", "sold": "Recently Sold"}, "contextColor": "#ACBBE8", "tiles": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_3vc4_1_73bc62d0f6a78f6f723671bd", "attribution": "\u00a9 OpenStreetMap contributors \u00a9 CARTO"};
+const map = L.map('map', { zoomControl:true, scrollWheelZoom:true });
+L.tileLayer(D.tiles, { attribution:D.attribution, subdomains:'abcd', maxZoom:20 }).addTo(map);
+const esc = s => (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const ctx = L.layerGroup().addTo(map);
+D.context.forEach(c => L.circleMarker([c.lat,c.lon], { radius:5, color:'#fff', weight:1.5, fillColor:D.contextColor, fillOpacity:1 })
+  .bindPopup(`<div class="pop-a">${esc(c.address)}</div><div class="pop-n">${esc([c.sf,c.type].filter(Boolean).join(' · '))}</div>`)
+  .addTo(ctx));
+
+const on = { lease:true, sale:true, sold:true };
+const markers = {};
+D.pins.forEach(p => {
+  const icon = L.divIcon({ className:'', iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-12],
+    html:`<div class="pin" style="background:${D.colors[p.kind]}">${p.n}</div>` });
+  const html = `<div class="pop-k" style="color:${D.colors[p.kind]}">${D.labels[p.kind]}</div>
+    <div class="pop-a">${esc(p.address)}</div>
+    <div class="pop-n">${esc([p.name, p.sf].filter(Boolean).join(' · '))}</div>
+    <div class="pop-h">${esc(p.headline)}</div>
+    <div class="pop-d">${esc(p.detail)}</div>
+    ${p.broker ? `<div class="pop-d">${esc(p.broker)}</div>` : ''}`;
+  markers[p.n] = L.marker([p.lat,p.lon], { icon, zIndexOffset:1000 }).bindPopup(html).addTo(map);
+});
+
+const all = D.pins.concat(D.context).map(p => [p.lat,p.lon]);
+if (all.length) map.fitBounds(all, { padding:[30,30] });
+
+function render() {
+  const f = document.getElementById('filters');
+  f.innerHTML = ['lease','sale','sold'].map(k => {
+    const n = D.pins.filter(p => p.kind===k).length;
+    return `<button class="chip" data-k="${k}" aria-pressed="${on[k]}"><i style="background:${D.colors[k]}"></i>${D.labels[k]} (${n})</button>`;
+  }).join('');
+  f.querySelectorAll('.chip').forEach(b => b.onclick = () => { on[b.dataset.k] = !on[b.dataset.k]; update(); });
+  const l = document.getElementById('list');
+  const vis = D.pins.filter(p => on[p.kind]);
+  l.innerHTML = vis.length ? vis.map(p => `<div class="item" data-n="${p.n}">
+      <div class="num" style="background:${D.colors[p.kind]}">${p.n}</div>
+      <div><b>${esc(p.address)}</b><span>${esc(p.headline)}${p.detail ? ' · '+esc(p.detail) : ''}</span></div></div>`).join('')
+    : '<div class="item"><span>No listings match these filters.</span></div>';
+  l.querySelectorAll('.item[data-n]').forEach(el => el.onclick = () => {
+    const m = markers[el.dataset.n]; map.setView(m.getLatLng(), Math.max(map.getZoom(), 16)); m.openPopup();
+  });
+}
+function update() {
+  D.pins.forEach(p => on[p.kind] ? markers[p.n].addTo(map) : markers[p.n].remove());
+  render();
+}
+render();
+</script></body></html>
